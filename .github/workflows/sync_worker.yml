@@ -7,7 +7,6 @@ on:
   workflow_dispatch:
   
   # 定时任务：设置为每天的国际标准时间（UTC）凌晨2点运行
-  # 您可以访问 https://crontab.guru/ 来生成自己的cron表达式
   schedule:
     - cron: '0 2 * * *'
 
@@ -16,28 +15,31 @@ jobs:
   sync:
     # 使用最新的 Ubuntu 虚拟环境来运行任务
     runs-on: ubuntu-latest
+
+    # =======================================================
+    # V V V V V V V V V V V V V V V V V V V V V V V V V V V V V
+    #
+    # 添加此部分以授予工作流写入仓库的权限
+    permissions:
+      contents: write
+    #
+    # ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^
+    # =======================================================
     
     # 任务包含的步骤
     steps:
       # 步骤1: 检出（Checkout）你的仓库代码
-      # 这是必需的步骤，以便工作流可以访问和修改你仓库中的文件
       - name: Checkout repository
         uses: actions/checkout@v4
 
       # 步骤2: 下载 "少年你相信光吗" 文件并重命名为 "_worker.js"
       - name: Download and rename script
         run: |
-          # 使用 curl 命令下载文件
-          # -L 参数用于处理重定向
-          # -o ./_worker.js 指定将下载的内容保存为当前目录下的 _worker.js 文件
-          # URL 指向源文件的原始链接 (raw link)
           curl -L -o ./_worker.js "https://raw.githubusercontent.com/byJoey/cfnew/main/%E5%B0%91%E5%B9%B4%E4%BD%A0%E7%9B%B8%E4%BF%A1%E5%85%89%E5%90%97"
 
       # 步骤3: 检查文件是否有变动，如果有，则自动提交并推送到你的仓库
       - name: Commit and push if changed
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          # 自定义的提交信息，清晰地说明这次提交做了什么
           commit_message: "CI: Update and rename worker script to _worker.js"
-          # 需要检查和提交的文件名，必须和上一步中 -o 参数指定的文件名一致
           file_pattern: _worker.js
