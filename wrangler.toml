@@ -1,6 +1,6 @@
-# wrangler.toml
+# wrangler.toml (最终正确版)
 
-# Worker 的名称，必须与 Cloudflare 仪表盘上的名称完全一致
+# Worker 的名称，与 Cloudflare 仪表盘上的名称完全一致
 name = "joeynews"
 
 # 主入口文件
@@ -9,13 +9,10 @@ main = "_worker.js"
 # 兼容性日期
 compatibility_date = "2025-09-08"
 
-# ======================= 新增的关键配置 =======================
-# 这个 [build] 部分是解决问题的关键
-[build]
-# 我们不执行任何构建命令
-command = ""
-# 我们明确告诉 Wrangler，我们上传的是一个 "service-worker" 格式的单个脚本
-# 这会提示 Wrangler 跳过它自己的打包和依赖分析过程，直接上传 main 字段指定的文件
-# 这就是“跳过检查”的诀窍
-upload.format = "service-worker"
+# ======================= 这是最终的正确修复 =======================
+# no_bundle = true 是一个顶级配置，它告诉 Wrangler：
+# “main 字段指向的 _worker.js 是一个已经完成的独立文件，
+#  不要对它进行任何构建、打包或依赖分析，直接将它上传。”
+# 这将彻底绕过导致错误的代码检查步骤。
+no_bundle = true
 # =============================================================
