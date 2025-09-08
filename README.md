@@ -27,3 +27,94 @@
 ## Star History
 
 [![Star History Chart](https://api.star-history.com/svg?repos=byJoey/cfnew&type=Timeline)](https://www.star-history.com/#byJoey/cfnew&Timeline&LogScale)
+
+
+# JoeyNews Worker 自动同步与部署
+
+[![Sync Worker Status](https://github.com/pusws/joeynews/actions/workflows/sync_worker.yml/badge.svg)](https://github.com/pusws/joeynews/actions/workflows/sync_worker.yml)
+
+## 项目简介
+
+此项目旨在全自动同步上游仓库 [byJoey/cfnew](https://github.com/byJoey/cfnew) 中的 Worker 脚本，并将其自动部署到本人的 Cloudflare Workers 账户。
+
+项目搭建了一套完整的自动化流水线，只需进行一次性设置，之后便无需任何手动干预，即可保持 Cloudflare Worker 与上游源代码的同步。
+
+## 核心功能
+
+- **🕒 定时同步**：通过 GitHub Actions，每日定时检查并拉取上游仓库的最新代码。
+- **📦 自动构建**：自动将拉取的源文件处理成 Cloudflare Worker 所需的 `_worker.js` 文件，并额外生成一个 `worker.zip` 压缩包。
+- **🚀 自动部署**：当代码同步到本仓库后，会自动触发 Cloudflare 的 Git 集成功能，将最新的 Worker 版本部署到全球边缘网络。
+- **🔧 配置清晰**：通过 `wrangler.toml` 文件管理所有部署配置，易于理解和修改。
+
+## 工作流程
+
+本项目的全自动流程如下：
+
+1.  **定时触发**
+    - GitHub Actions 工作流 (`.github/workflows/sync_worker.yml`) 每日定时启动。
+
+2.  **拉取源码**
+    - 工作流访问上游仓库 `byJoey/cfnew`，下载最新的 `少年你相信光吗` 文件。
+
+3.  **处理文件**
+    - 将下载的文件重命名为 `_worker.js`。
+    - 将 `_worker.js` 文件压缩为 `worker.zip`。
+
+4.  **提交更新**
+    - 工作流将更新后的 `_worker.js` 和 `worker.zip` 文件自动提交到本仓库的 `main` 分支。
+
+5.  **触发部署**
+    - 这次提交（push）操作被 Cloudflare Workers 的 Git 集成功能检测到。
+    - Cloudflare 根据仓库根目录下的 `wrangler.toml` 配置文件，自动将 `_worker.js` 部署为新的 Worker 版本。
+
+## 配置文件说明
+
+本项目的自动化核心由以下两个文件驱动：
+
+-   **`.github/workflows/sync_worker.yml`**
+    -   定义了 GitHub Actions 的自动化工作流。
+    -   负责定时拉取、处理文件和提交更新的所有逻辑。
+
+-   **`wrangler.toml`**
+    -   Cloudflare Worker 的部署“说明书”。
+    -   它告诉 Cloudflare 这是一个 Worker 项目、主入口文件是什么 (`_worker.js`) 以及其他兼容性配置。
+    -   `no_bundle = true` 是此配置的关键，它指示 Cloudflare 直接上传脚本，而不进行不必要的构建检查，从而解决了上游代码的兼容性问题。
+
+## 首次部署教程
+
+这是一个**一次性**的设置流程，用于将此 GitHub 仓库与您的 Cloudflare Worker 服务连接起来。
+
+### 准备工作
+在开始之前，请确保：
+- 您拥有一个 Cloudflare 账户。
+- 本仓库已包含正确的 `.github/workflows/sync_worker.yml` 和 `wrangler.toml` 文件。
+- "Sync Worker" 工作流至少已成功运行一次，确保仓库中已存在 `_worker.js` 文件。
+
+### 部署步骤
+
+1.  **登录并创建 Worker 服务**
+    - 登录到您的 Cloudflare 仪表盘。
+    - 在左侧菜单进入 **Workers & Pages**。
+    - 点击 **创建应用程序 (Create application)** -> **Workers** 标签页。
+    - 点击 **创建 Worker (Create Worker)**。
+    - 为您的 Worker **命名**。 **注意**：此名称**必须**与 `wrangler.toml` 文件中的 `name` 字段完全一致（例如 `joeynews`）。
+    - 点击 **部署 (Deploy)** 来创建一个空的 Worker 服务。
+
+2.  **连接到 GitHub 仓库**
+    - 部署成功后，进入该 Worker 的管理页面。
+    - 点击 **部署 (Deployments)** 标签页。
+    - 在页面上方找到并点击 **从 Git 部署 (Deploy from Git)** 或 **Connect Git**。
+    - 按照提示授权并选择您这个 GitHub 仓库 (`pusws/joeynews`)。
+
+3.  **配置并完成部署**
+    - 在最后的配置页面，确认以下设置：
+        - **生产分支**: `main`
+        - **自动部署**: 启用
+        - **wrangler.toml 文件路径**: `/wrangler.toml` (保持默认即可)
+    - 点击 **保存并部署 (Save and Deploy)**。
+
+Cloudflare 将会拉取您的仓库，读取 `wrangler.toml` 的配置，并进行首次部署。部署成功后，您的全自动流水线就正式激活了！之后的一切都将自动运行。
+
+## 鸣谢
+
+本项目所使用的 Worker 脚本源码来自 [byJoey/cfnew](https://github.com/byJoey/cfnew) 仓库，感谢原作者的分享。
