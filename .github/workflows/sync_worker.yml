@@ -1,13 +1,12 @@
 # 工作流名称
-name: Sync and Rename Worker Script
+name: Sync Worker Script and Create ZIP
 
 # 工作流触发器
 on:
   # 允许在 GitHub 的 Actions 页面手动触发此工作流
   workflow_dispatch:
-  
+
   # 定时任务：设置为每天的国际标准时间（UTC）凌晨2点运行
-  # 这行代码确保了工作流会“每天拉取一次”
   schedule:
     - cron: '0 2 * * *'
 
@@ -17,10 +16,10 @@ jobs:
     # 使用最新的 Ubuntu 虚拟环境来运行任务
     runs-on: ubuntu-latest
 
-    # 授予工作流向你的仓库推送代码的写入权限（非常重要）
+    # 授予工作流向你的仓库推送代码的写入权限
     permissions:
       contents: write
-    
+
     # 任务包含的步骤
     steps:
       # 步骤1: 检出（Checkout）你的仓库代码
@@ -32,9 +31,24 @@ jobs:
         run: |
           curl -L -o ./_worker.js "https://raw.githubusercontent.com/byJoey/cfnew/main/%E5%B0%91%E5%B9%B4%E4%BD%A0%E7%9B%B8%E4%BF%A1%E5%85%89%E5%90%97"
 
-      # 步骤3: 检查文件是否有变动，如果有，则自动提交并推送到你的仓库
+      # =======================================================
+      # V V V V V V V V V V V V V V V V V V V V V V V V V V V V V
+      #
+      # 步骤3 (新增): 将 _worker.js 压缩为 worker.zip
+      - name: Create worker.zip
+        run: |
+          # 使用 zip 命令创建一个名为 worker.zip 的压缩包
+          # 压缩包里只包含 _worker.js 这一个文件
+          zip worker.zip _worker.js
+      #
+      # ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^
+      # =======================================================
+
+      # 步骤4: 提交所有变动的文件 (_worker.js 和 worker.zip)
       - name: Commit and push if changed
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "CI: Update and rename worker script to _worker.js"
-          file_pattern: _worker.js
+          commit_message: "CI: Update _worker.js and worker.zip"
+          # 将 file_pattern 修改为 '.', 意味着提交当前目录下所有的文件变动
+          # 这样可以确保 _worker.js 和 worker.zip 都被提交
+          file_pattern: .
