@@ -28,6 +28,20 @@
 
 [![Star History Chart](https://api.star-history.com/svg?repos=byJoey/cfnew&type=Timeline)](https://www.star-history.com/#byJoey/cfnew&Timeline&LogScale)
 
+
+好的，这个要求非常合理。在文档中清晰地列出所有可选方案及其优缺点，对于一个好的 README 来说至关重要。
+
+我将为您重写 `README.md` 文件，在“管理持久化变量”部分，详细说明两种不同的 `wrangler.toml` 配置方法（明文变量 vs Cloudflare Secrets），并给出明确的优缺点对比和推荐。
+
+-----
+
+### **最终版 `README.md` 文件**
+
+请使用下面框中的**完整内容**，最后一次替换您仓库中的 `README.md` 文件。这将是包含所有讨论过的内容、最全面的版本。
+
+-----
+
+````markdown
 # JoeyNews Worker 自动同步与部署
 
 [![Sync Worker Status](https://github.com/pusws/joeynews/actions/workflows/sync_worker.yml/badge.svg)](https://github.com/pusws/joeynews/actions/workflows/sync_worker.yml)
@@ -43,7 +57,7 @@
 - **🕒 定时同步**：通过 GitHub Actions，每日定时检查并拉取上游仓库的最新代码。
 - **📦 自动构建**：自动将拉取的源文件处理成 Cloudflare Worker 所需的 `_worker.js` 文件，并额外生成一个 `worker.zip` 压缩包。
 - **🚀 自动部署**：当代码同步到本仓库后，会自动触发 Cloudflare 的 Git 集成功能，将最新的 Worker 版本部署到全球边缘网络。
-- **🔑 变量持久化**：通过 Cloudflare Secrets 安全管理 Worker 所需的 UUID 等变量，确保变量在代码更新后不会丢失。
+- **🔑 变量持久化**：支持通过两种不同方式管理 Worker 所需的 UUID 等变量，确保变量在代码更新后不会丢失。
 - **🔧 配置清晰**：通过 `wrangler.toml` 文件管理所有部署配置，易于理解和修改。
 
 ## 工作流程
@@ -65,7 +79,7 @@
 
 5.  **触发部署**
     - 这次提交（push）操作被 Cloudflare Workers 的 Git 集成功能检测到。
-    - Cloudflare 根据仓库根目录下的 `wrangler.toml` 配置文件，自动将 `_worker.js` 部署为新的 Worker 版本。Worker 在运行时会自动加载已配置的密钥。
+    - Cloudflare 根据仓库根目录下的 `wrangler.toml` 配置文件，自动将 `_worker.js` 部署为新的 Worker 版本。Worker 在运行时会自动加载已配置的变量或密钥。
 
 ## 首次部署教程
 
@@ -104,10 +118,43 @@ Cloudflare 将会拉取您的仓库并进行首次部署。部署成功后，您
 
 ## 管理持久化变量 (UUID)
 
-此 Worker 需要一个名为 `u` 的 UUID 变量才能正常工作。为确保此变量在每次自动部署后**不被重置或丢失**，必须使用 Cloudflare 的 **Secrets** 功能进行设置。
+此 Worker 需要一个名为 `u` 的 UUID 变量才能正常工作。为确保此变量在每次自动部署后**不被重置或丢失**，您有两种方案可选。
 
-这是一个**一次性**的设置，之后变量将永久绑定到您的 Worker 服务。
+---
 
+### 方案一：在 `wrangler.toml` 中定义明文变量 (简单但不推荐)
+
+此方案将变量直接写入配置文件，简单直接，但会将您的 UUID **公开**在 GitHub 仓库中。
+
+**操作步骤:**
+1.  编辑仓库根目录下的 `wrangler.toml` 文件。
+2.  在文件末尾添加 `[vars]` 部分。
+
+**`wrangler.toml` 配置示例:**
+```toml
+# wrangler.toml (方案一配置)
+
+name = "joeynews"
+main = "_worker.js"
+compatibility_date = "2025-09-08"
+no_bundle = true
+
+[vars]
+u = "5b89b269-f5e1-4b2e-a504-e730056f365f"
+```
+
+- **优点**:
+    - 配置简单，所有信息都在一个文件里。
+- **缺点**:
+    - **安全性差**：UUID 以明文形式存储在公开仓库中，任何人都可以看到。
+
+---
+
+### 方案二：使用 Cloudflare Secrets (安全，强烈推荐)
+
+此方案使用 Cloudflare 提供的密钥管理功能，将变量**加密存储**在 Cloudflare 端。变量会永久绑定到您的 Worker 服务，**不会**在 GitHub 上暴露，也**不会**被新的部署覆盖。
+
+**操作步骤 (一次性设置):**
 1.  **进入 Worker 设置**
     - 在 Cloudflare 仪表盘，进入您的 Worker (`joeynews`) 的管理页面。
     - 点击 **设置 (Settings)** 标签页。
@@ -121,7 +168,24 @@ Cloudflare 将会拉取您的仓库并进行首次部署。部署成功后，您
         - **密钥值 (Secret value)**: `5b89b269-f5e1-4b2e-a504-e730056f365f`
     - 点击 **保存 (Save)**。
 
-完成设置后，这个 `u` 变量就会被安全地加密存储，并在每次 Worker 运行时自动注入。无论您的 GitHub 仓库代码如何更新，这个变量都将保持不变。
+**`wrangler.toml` 配置示例:**
+当使用此方案时，您的 `wrangler.toml` 文件**不需要**包含任何变量信息。
+```toml
+# wrangler.toml (方案二配置)
+
+name = "joeynews"
+main = "_worker.js"
+compatibility_date = "2025-09-08"
+no_bundle = true
+```
+
+- **优点**:
+    - **高度安全**：变量被加密，不会在代码仓库中暴露。
+    - **一劳永逸**：设置一次后，变量将永久生效，不受代码更新影响。
+- **缺点**:
+    - 配置步骤比方案一略多。
+
+> **结论**: 强烈建议使用**方案二 (Cloudflare Secrets)** 来管理您的 UUID 和任何其他敏感数据。
 
 ## 配置文件说明
 
@@ -129,6 +193,9 @@ Cloudflare 将会拉取您的仓库并进行首次部署。部署成功后，您
 -   **`wrangler.toml`**: Cloudflare Worker 的部署“说明书”。`no_bundle = true` 是此配置的关键，它指示 Cloudflare 直接上传脚本，从而解决了上游代码的兼容性问题。
 
 ## 鸣谢
+
+本项目所使用的 Worker 脚本源码来自 [byJoey/cfnew](https://github.com/byJoey/cfnew) 仓库，感谢原作者的分享。
+````
 
 本项目所使用的 Worker 脚本源码来自 [byJoey/cfnew](https://github.com/byJoey/cfnew) 仓库，感谢原作者的分享。
 
