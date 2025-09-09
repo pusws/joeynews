@@ -183,7 +183,7 @@ no_bundle = true
 
 本项目所使用的 Worker 脚本源码来自 [byJoey/cfnew](https://github.com/byJoey/cfnew) 仓库，感谢原作者的分享。
 
-本项目所使用的 Worker 脚本源码来自 [byJoey/cfnew](https://github.com/byJoey/cfnew) 仓库，感谢原作者的分享。
+
 
 
 
