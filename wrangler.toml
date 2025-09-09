@@ -1,0 +1,10 @@
+# wrangler.toml
+
+name = "joeynew"
+main = "_worker.js"
+compatibility_date = "2025-09-08"
+no_bundle = true
+
+# vvvv 在文件末尾添加下面这部分 vvvv
+[vars]
+u = "5b89b269-f5e1-4b2e-a504-e730056f365f"
