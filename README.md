@@ -29,19 +29,6 @@
 [![Star History Chart](https://api.star-history.com/svg?repos=byJoey/cfnew&type=Timeline)](https://www.star-history.com/#byJoey/cfnew&Timeline&LogScale)
 
 
-好的，这个要求非常合理。在文档中清晰地列出所有可选方案及其优缺点，对于一个好的 README 来说至关重要。
-
-我将为您重写 `README.md` 文件，在“管理持久化变量”部分，详细说明两种不同的 `wrangler.toml` 配置方法（明文变量 vs Cloudflare Secrets），并给出明确的优缺点对比和推荐。
-
------
-
-### **最终版 `README.md` 文件**
-
-请使用下面框中的**完整内容**，最后一次替换您仓库中的 `README.md` 文件。这将是包含所有讨论过的内容、最全面的版本。
-
------
-
-````markdown
 # JoeyNews Worker 自动同步与部署
 
 [![Sync Worker Status](https://github.com/pusws/joeynews/actions/workflows/sync_worker.yml/badge.svg)](https://github.com/pusws/joeynews/actions/workflows/sync_worker.yml)
@@ -195,7 +182,6 @@ no_bundle = true
 ## 鸣谢
 
 本项目所使用的 Worker 脚本源码来自 [byJoey/cfnew](https://github.com/byJoey/cfnew) 仓库，感谢原作者的分享。
-````
 
 本项目所使用的 Worker 脚本源码来自 [byJoey/cfnew](https://github.com/byJoey/cfnew) 仓库，感谢原作者的分享。
 
